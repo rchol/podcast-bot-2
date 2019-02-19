@@ -25,27 +25,21 @@ public class H2Repo implements Repo {
 
     @PostConstruct
     public void initTables() {
-        ds.executeQuery("CREATE TABLE IF NOT EXISTS posts\n"
-            + "(\n"
-            + "    id int AUTO_INCREMENT PRIMARY KEY NOT NULL,\n"
-            + "    guid varchar(32) NOT NULL,\n"
-            + "    title varchar(150),\n"
-            + "    link varchar(200),\n"
-            + "    \"link-tag\" varchar(50),\n"
-            + "     enclosure varchar(200)"
-            + "    description varchar(1000),"
-            + "     hashtags varchar(200)\n"
-            + "    \"is-posted\" boolean NOT NULL\n"
-            + ");"
-            + "create table IF NOT EXISTS CHANNELS\n"
-            + "(\n"
-            + "  ID INTEGER default (NEXT VALUE FOR PUBLIC.SYSTEM_SEQUENCE_36CA5577_DCA8_4757_8D1A_1ACF55C9B6AC)\n"
-            + "    primary key,\n"
-            + "  FEED-URL VARCHAR(200) not null\n"
-            + "    constraint CHANNELS_FEED-URL_UINDEX\n"
-            + "    unique,\n"
-            + "  HASHTAGS VARCHAR(200)\n"
-            + ");");
+        ds.executeUpdate("CREATE TABLE IF NOT EXISTS posts (\n"
+            + " id int AUTO_INCREMENT PRIMARY KEY NOT NULL,\n"
+            + " guid varchar(32) NOT NULL,\n"
+            + " title varchar(150),\n"
+            + " link varchar(200),\n"
+            + " link_tag varchar(50),\n"
+            + "  enclosure varchar(200),\n"
+            + " description varchar(1000),\n"
+            + " hashtags varchar(200), is_posted boolean NOT NULL);\n"
+            + "CREATE TABLE IF NOT EXISTS channels\n"
+            + "(id int AUTO_INCREMENT PRIMARY KEY NOT NULL,\n"
+            + "    feed_url varchar(200) NOT NULL\n"
+            + ");\n"
+            + "CREATE UNIQUE INDEX IF NOT EXISTS channels_feed_url_uindex ON channels (feed_url)"
+        );
     }
 
     @Override
@@ -59,15 +53,15 @@ public class H2Repo implements Repo {
         StringBuilder hashtags = new StringBuilder();
         message.getHashtags().forEach(tag -> hashtags.append(tag).append(" "));
 
-        ds.executeUpdate("INSERT INTO posts (guid, title, link, link-tag, enclosure, description, is-posted) VALUES"
+        ds.executeUpdate("INSERT INTO posts (guid, title, link, link_tag, enclosure, description, is_posted) VALUES"
             + "(?,?,?,?,?,?,?,?)", guid, title, link, linkTag, enclosure, description, hashtags.toString(), false);
     }
 
     @Override
     public boolean isPosted(String guid) {
-        ResultSet rs = ds.executeQuery("SELECT is-posted FROM posts WHERE guid='" + guid + "'");
+        ResultSet rs = ds.executeQuery("SELECT is_posted FROM posts WHERE guid='" + guid + "'");
         try {
-            return rs.first() && rs.getBoolean("is-posted");
+            return rs.first() && rs.getBoolean("is_posted");
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -89,13 +83,13 @@ public class H2Repo implements Repo {
 
     @Override
     public long updateProcessed(String guid) {
-        return ds.executeUpdate("UPDATE posts SET is-posted=true WHERE guid='(?)'", guid);
+        return ds.executeUpdate("UPDATE posts SET is_posted=true WHERE guid='(?)'", guid);
     }
 
     @Override
     public String getChannelTags(String url) {
         try {
-            ResultSet rs = ds.executeQuery("SELECT hashtags FROM channels WHERE feed-url ='" + url + "'");
+            ResultSet rs = ds.executeQuery("SELECT hashtags FROM channels WHERE feed-_rl ='" + url + "'");
             if (rs.first()) {
                 return rs.getString("hashtags");
             }
@@ -108,14 +102,14 @@ public class H2Repo implements Repo {
     @Override
     public List<TelegramMessage> getUnprocessedPosts() {
         try {
-            ResultSet rs = ds.executeQuery("SELECT * FROM posts WHERE is-posted=false");
+            ResultSet rs = ds.executeQuery("SELECT * FROM posts WHERE is_posted=false");
             List<TelegramMessage> posts = new ArrayList<>();
             while (rs.next()) {
                 List<String> hashtags = new ArrayList<>(Arrays.asList(rs.getString("hashtags").split("\\s+")));
                 TelegramMessage tgMsg = new TelegramMessage();
                 tgMsg.setTitle(rs.getString("title"))
                     .setDescription(rs.getString("description"))
-                    .setLink(rs.getString("link"), rs.getString("link-tag"))
+                    .setLink(rs.getString("link"), rs.getString("link_tag"))
                     .setHashtags(hashtags)
                     .setMp3link(rs.getString("enclosure"));
                 tgMsg.setGuid(rs.getString("guid"));
@@ -131,9 +125,9 @@ public class H2Repo implements Repo {
     public List<RSSChannel> getAllChannels() {
         List<RSSChannel> channels = new ArrayList<>();
         try {
-            ResultSet rs = ds.executeQuery("SELECT feed-url, hashtags FROM channels");
+            ResultSet rs = ds.executeQuery("SELECT feed_url, hashtags FROM channels");
             while (rs.next()) {
-                String url = rs.getString("feed-url");
+                String url = rs.getString("feed_url");
                 String hashtags = rs.getString("hashtags");
                 RSSChannelBuilder builder = new RSSChannelBuilder();
                 builder.setUrl(url).addHashtag(hashtags);

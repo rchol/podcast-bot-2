@@ -6,7 +6,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import javax.sql.DataSource;
-import org.h2.jdbcx.JdbcConnectionPool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 
@@ -15,9 +14,7 @@ public class H2SimpleDataSource implements SimpleDataSource {
     private final ThreadLocalConnection thread;
 
     @Autowired
-    public H2SimpleDataSource(){
-        javax.sql.DataSource ds = JdbcConnectionPool
-            .create("jdbc:h2:file:/Users/r.chernyshev/Projects/podcast-bot/db", "", "");
+    public H2SimpleDataSource(DataSource ds){
         this.thread = new ThreadLocalConnection(ds);
     }
 

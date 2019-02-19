@@ -7,8 +7,7 @@ import java.util.List;
 
 public class RSSChannelBuilder {
 
-    private RSSChannel oldChannel;
-
+    private RSSChannel channel;
     private String urlFeed;
 
     private List<String> hashtag;
@@ -18,8 +17,8 @@ public class RSSChannelBuilder {
         this.hashtag = new ArrayList<>();
     }
 
-    public RSSChannelBuilder(RSSChannel oldChannel) {
-        this.oldChannel = oldChannel;
+    public RSSChannelBuilder(RSSChannel channel) {
+        this.channel = channel;
     }
 
     public RSSChannel build() {

@@ -1,6 +1,6 @@
 package bot.sql;
 
-import org.h2.jdbcx.JdbcConnectionPool;
+import javax.sql.DataSource;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
@@ -11,8 +11,8 @@ public class DataSourceBean {
 
     @Bean
     @ConfigurationProperties(prefix="bot.datasource")
-    public SimpleDataSource dataSource(){
-        return JdbcConnectionPool.create();
+    public DataSource dataSource(){
+        return DataSourceBuilder.create().build();
     }
 
 }
