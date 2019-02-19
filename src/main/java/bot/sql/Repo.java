@@ -4,7 +4,6 @@ import bot.download.model.RSSChannel;
 import bot.download.model.RSSMessage;
 import bot.upload.model.TelegramMessage;
 import java.util.List;
-import org.springframework.stereotype.Repository;
 
 public interface Repo {
     void addMessage(RSSMessage message);

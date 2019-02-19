@@ -2,7 +2,7 @@ package bot.sql;
 
 import java.sql.ResultSet;
 
-public interface DataSource {
+public interface SimpleDataSource {
 
     ResultSet executeQuery(String query);
 

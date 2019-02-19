@@ -11,11 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class H2DataSource implements bot.sql.DataSource {
+public class H2SimpleDataSource implements SimpleDataSource {
     private final ThreadLocalConnection thread;
 
     @Autowired
-    public H2DataSource(){
+    public H2SimpleDataSource(){
         javax.sql.DataSource ds = JdbcConnectionPool
             .create("jdbc:h2:file:/Users/r.chernyshev/Projects/podcast-bot/db", "", "");
         this.thread = new ThreadLocalConnection(ds);

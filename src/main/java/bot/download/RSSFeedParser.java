@@ -31,16 +31,16 @@ public class RSSFeedParser {
     public RSSFeedParser(RSSChannel channel, Repo repo) {
         try {
             this.repo = repo;
-            URL url = new URL(channel.getUrl());
+            URL url = new URL(channel.getUrlFeed());
             SyndFeedInput in = new SyndFeedInput();
             feed = in.build(new XmlReader(url));
-
             Module itunesModule = feed.getModule(ITUNES);
             FeedInformationImpl infoTunes = (FeedInformationImpl) itunesModule;
-            channel.setHashtag(infoTunes.getKeywords());
-            channel.addHashtag(infoTunes.getAuthor());
-            channel.addHashtag(repo.getChannelTags(url.toString()).split("\\s+"));
-
+            RSSChannelBuilder builder = new RSSChannelBuilder(channel);
+            channel = builder.setTitle(feed.getTitle())
+                .addHashtag(infoTunes.getKeywords())
+                .addHashtag(infoTunes.getAuthor())
+                .addHashtag(repo.getChannelTags(url.toString()).split("\\s+")).build();
             this.channel = channel;
         } catch (FeedException | IOException e) {
             throw new RuntimeException(e);
@@ -62,7 +62,7 @@ public class RSSFeedParser {
             if (!repo.isPosted(entry.getUri())) {
                 msg = new RSSMessage(entry.getUri(),
                     entry.getTitle(),
-                    entry.getAuthor(),
+                    channel.getTitle(),
                     mediaLink,
                     text,
                     entry.getLink(),
@@ -76,7 +76,7 @@ public class RSSFeedParser {
         Module itunes = entry.getModule(ITUNES);
         EntryInformation info = (EntryInformation) itunes;
         List<String> hastagsMsg = new ArrayList<>(Arrays.asList(info.getKeywords()));
-        hastagsMsg.addAll(channel.getHashtag());
+        hastagsMsg.addAll(channel.getHashtags());
         return hastagsMsg;
     }
 }

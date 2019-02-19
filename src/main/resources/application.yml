@@ -1,0 +1,11 @@
+bot:
+  token: ""
+  channel-id: ""
+  name: ""
+
+  database:
+    jdbc-url: ""
+    username: ""
+    password: ""
+
+

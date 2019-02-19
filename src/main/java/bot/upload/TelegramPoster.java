@@ -31,7 +31,7 @@ public class TelegramPoster {
         this.bot = bot;
     }
 
-    @Scheduled
+    @Scheduled(initialDelay = 2000L, fixedDelay = 60_000L)
     public void postNew() {
         List<TelegramMessage> posts = repo.getUnprocessedPosts();
         posts.forEach(post -> {
