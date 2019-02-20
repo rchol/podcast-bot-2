@@ -47,8 +47,8 @@ public class RSSFeedParser {
         }
     }
 
-    public Optional<RSSMessage> readFeed() {
-        RSSMessage msg = null;
+    public List<RSSMessage> readFeed() {
+        List<RSSMessage> newMessages = new ArrayList<>();
         List<SyndEntry> entries = feed.getEntries();
         for (SyndEntry entry : entries) {
             String htmlDesc = entry.getDescription().getValue();
@@ -59,18 +59,18 @@ public class RSSFeedParser {
             if (encl.isPresent()){
                 mediaLink = encl.get().getUrl();
             }
-            if (!repo.isPosted(entry.getUri())) {
-                repo.updateProcessed(entry.getUri(), PostProcessing.PROCESSING);
-                msg = new RSSMessage(entry.getUri(),
+            if (repo.isNew(entry.getUri())) {
+                newMessages.add(new RSSMessage(entry.getUri(),
                     entry.getTitle(),
                     channel.getTitle(),
                     mediaLink,
                     text,
                     entry.getLink(),
-                    genHashtags(entry));
+                    genHashtags(entry),
+                    entry.getPublishedDate()));
             }
         }
-        return Optional.ofNullable(msg);
+        return newMessages;
     }
 
     private List<String> genHashtags(SyndEntry entry){
@@ -82,7 +82,7 @@ public class RSSFeedParser {
     }
 
 
-   public enum PostProcessing{
+   public enum PostStatus {
         NEW, PROCESSING, POSTED, FAILED
     }
 }

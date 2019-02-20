@@ -16,10 +16,14 @@ public class RSSService {
         this.repo = repo;
     }
 
-    @Scheduled(fixedDelay = 10_000L)
+    @Scheduled(fixedDelay = 30_000L)
     public void addPost() {
         List<RSSChannel> channels = repo.getAllChannels();
         channels.stream().map(channel -> new RSSFeedParser(channel, repo)).map(RSSFeedParser::readFeed)
-            .forEach(newMsg -> newMsg.ifPresent(repo::addMessage));
+            .forEach(msgList -> {
+                if (!msgList.isEmpty()){
+                    msgList.forEach(repo::addMessage);
+                }
+            });
     }
 }

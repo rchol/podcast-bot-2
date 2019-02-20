@@ -1,6 +1,6 @@
 package bot.upload;
 
-import bot.download.RSSFeedParser.PostProcessing;
+import bot.download.RSSFeedParser.PostStatus;
 import bot.sql.Repo;
 import bot.upload.model.TelegramMessage;
 import bot.upload.utils.AudioPreparator;
@@ -36,33 +36,35 @@ public class TelegramPoster {
     public void postNew() {
         List<TelegramMessage> posts = repo.getUnprocessedPosts();
         posts.forEach(post -> {
-            int replyId = sendMessage(post.buildText());
-            sendAudio(post, replyId);
-            repo.updateProcessed(post.getGuid(), PostProcessing.POSTED);
+            repo.updateProcessed(post.getGuid(), PostStatus.PROCESSING);
+            int replyId = sendAudio(post);
+            sendMessage(post.buildText(), replyId);
+            repo.updateProcessed(post.getGuid(), PostStatus.POSTED);
         });
     }
 
-    private int sendMessage(String text) {
+    private void sendMessage(String text, int replyId) {
         SendMessage sendMessage = new SendMessage();
         sendMessage.enableMarkdown(false);
         sendMessage.setChatId(CHANEL_ID);
         sendMessage.disableWebPagePreview();
         sendMessage.setParseMode("HTML");
         sendMessage.setText(text);
+        sendMessage.setReplyToMessageId(replyId);
         try {
-            Message sent = bot.execute(sendMessage);
-            return sent.getMessageId();
+            bot.execute(sendMessage);
         } catch (TelegramApiException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private void sendAudio(TelegramMessage post, int replyId) {
+    private int sendAudio(TelegramMessage post) {
         AudioPreparator preparator = new AudioPreparator();
         String audioFile = preparator.retrive(post.getMp3link());
         List<String> filesToSend = preparator.splitAudio(audioFile, 49);
         AtomicInteger idx = new AtomicInteger(1);
-        filesToSend.forEach(filename -> {
+        int replyId = -1;
+        for (String filename : filesToSend) {
             File file = new File(filename);
             try (FileInputStream ain = new FileInputStream(file)) {
                 SendAudio sendAudio = new SendAudio();
@@ -70,11 +72,12 @@ public class TelegramPoster {
                 String audioName = String.format("%s - %2d", post.getTitle(), idx.getAndIncrement());
                 sendAudio.setAudio(audioName, ain);
                 sendAudio.setCaption(audioName);
-                sendAudio.setReplyToMessageId(replyId);
-                bot.execute(sendAudio);
+                Message msg = bot.execute(sendAudio);
+                if (replyId == -1) replyId = msg.getMessageId();
             } catch (IOException | TelegramApiException e) {
                 throw new RuntimeException(e);
             }
-        });
+        }
+        return replyId;
     }
 }

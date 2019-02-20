@@ -1,7 +1,7 @@
 package bot.sql;
 
 import bot.download.RSSChannelBuilder;
-import bot.download.RSSFeedParser.PostProcessing;
+import bot.download.RSSFeedParser.PostStatus;
 import bot.download.model.RSSChannel;
 import bot.download.model.RSSMessage;
 import bot.upload.model.TelegramMessage;
@@ -34,6 +34,7 @@ public class H2Repo implements Repo {
             + " link_tag varchar(50),\n"
             + "  enclosure varchar(200),\n"
             + " description varchar(2000),\n"
+            + "publish_date long,"
             + " hashtags varchar(200), status varchar(10) NOT NULL);\n"
             + "CREATE TABLE IF NOT EXISTS channels\n"
             + "(id int AUTO_INCREMENT PRIMARY KEY NOT NULL,\n"
@@ -52,19 +53,22 @@ public class H2Repo implements Repo {
         String linkTag = message.getChannelName();
         String enclosure = message.getEnclosure();
         String description = message.getDescription();
+        long publishDateMillis = message.getPubDate().getTime();
         StringBuilder hashtags = new StringBuilder();
         message.getHashtags().forEach(tag -> hashtags.append(tag).append(" "));
 
-        ds.executeUpdate("INSERT INTO posts (guid, title, link, link_tag, enclosure, description, hashtags, status) VALUES"
-            + "(?,?,?,?,?,?,?,?)", guid, title, link, linkTag, enclosure, description, hashtags.toString(),
-            PostProcessing.NEW.name());
+        ds.executeUpdate(
+            "INSERT INTO posts (guid, title, link, link_tag, enclosure, description, publish_date, hashtags, status) VALUES"
+                + "(?,?,?,?,?,?,?,?,?)", guid, title, link, linkTag, enclosure, description, publishDateMillis
+            ,hashtags.toString(), PostStatus.NEW.name());
     }
 
     @Override
-    public boolean isPosted(String guid) {
+    public boolean isNew(String guid) {
         ResultSet rs = ds.executeQuery("SELECT status FROM posts WHERE guid='" + guid + "'");
         try {
-            return rs.first() && PostProcessing.valueOf(rs.getString("status")).equals(PostProcessing.POSTED);
+            return !rs.first();
+
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -85,8 +89,8 @@ public class H2Repo implements Repo {
     }
 
     @Override
-    public long updateProcessed(String guid, PostProcessing status) {
-        return ds.executeUpdate("UPDATE posts SET status='"+status.name()+"' WHERE guid='"+guid+"'");
+    public long updateProcessed(String guid, PostStatus status) {
+        return ds.executeUpdate("UPDATE posts SET status='" + status.name() + "' WHERE guid='" + guid + "'");
     }
 
     @Override
@@ -105,7 +109,7 @@ public class H2Repo implements Repo {
     @Override
     public List<TelegramMessage> getUnprocessedPosts() {
         try {
-            ResultSet rs = ds.executeQuery("SELECT * FROM posts WHERE status ='" + PostProcessing.NEW.name() + "'");
+            ResultSet rs = ds.executeQuery("SELECT * FROM posts WHERE status ='" + PostStatus.NEW.name() + "' ORDER BY publish_date");
             List<TelegramMessage> posts = new ArrayList<>();
             while (rs.next()) {
                 List<String> hashtags = new ArrayList<>(Arrays.asList(rs.getString("hashtags").split("\\s+")));
