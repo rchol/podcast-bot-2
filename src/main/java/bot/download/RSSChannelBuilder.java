@@ -11,7 +11,7 @@ public class RSSChannelBuilder {
     private String urlFeed;
 
     private List<String> hashtag;
-    private String title;
+    private String title = "";
 
     public RSSChannelBuilder() {
         this.hashtag = new ArrayList<>();
@@ -19,6 +19,7 @@ public class RSSChannelBuilder {
 
     public RSSChannelBuilder(RSSChannel channel) {
         this.channel = channel;
+        this.hashtag = new ArrayList<>();
     }
 
     public RSSChannel build() {

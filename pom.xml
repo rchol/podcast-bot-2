@@ -12,10 +12,11 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <telegram-bot-version>4.1.2</telegram-bot-version>
         <rometools-version>1.12.0</rometools-version>
-        <h2-version>1.4.197</h2-version>
+        <h2-version>1.4.196</h2-version>
         <ffmpeg-wrapper-version>0.6.2</ffmpeg-wrapper-version>
         <jsoup-version>1.7.2</jsoup-version>
-        <spring-version>2.1.2.RELEASE</spring-version>
+        <spring-boot-version>2.1.2.RELEASE</spring-boot-version>
+        <hibernate-version>5.2.4.Final</hibernate-version>
     </properties>
 
     <dependencies>
@@ -56,22 +57,26 @@
         </dependency>
 
         <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <version>${hibernate-version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-            <version>${spring-version}</version>
+            <version>${spring-boot-version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
-            <version>${spring-version}</version>
+            <version>${spring-boot-version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jdbc</artifactId>
-            <version>${spring-version}</version>
+            <version>${spring-boot-version}</version>
         </dependency>
-
-
     </dependencies>
 </project>

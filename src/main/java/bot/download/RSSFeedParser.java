@@ -60,6 +60,7 @@ public class RSSFeedParser {
                 mediaLink = encl.get().getUrl();
             }
             if (!repo.isPosted(entry.getUri())) {
+                repo.updateProcessed(entry.getUri(), PostProcessing.PROCESSING);
                 msg = new RSSMessage(entry.getUri(),
                     entry.getTitle(),
                     channel.getTitle(),
@@ -78,5 +79,10 @@ public class RSSFeedParser {
         List<String> hastagsMsg = new ArrayList<>(Arrays.asList(info.getKeywords()));
         hastagsMsg.addAll(channel.getHashtags());
         return hastagsMsg;
+    }
+
+
+   public enum PostProcessing{
+        NEW, PROCESSING, POSTED, FAILED
     }
 }

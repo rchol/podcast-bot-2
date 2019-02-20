@@ -1,5 +1,6 @@
 package bot.sql;
 
+import bot.download.RSSFeedParser.PostProcessing;
 import bot.download.model.RSSChannel;
 import bot.download.model.RSSMessage;
 import bot.upload.model.TelegramMessage;
@@ -14,7 +15,7 @@ public interface Repo {
 
     void addChannel(String url);
 
-    long updateProcessed(String guid);
+    long updateProcessed(String guid, PostProcessing status);
 
     String getChannelTags(String url);
 

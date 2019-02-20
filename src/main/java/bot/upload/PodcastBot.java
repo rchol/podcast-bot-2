@@ -7,25 +7,44 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import javax.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.telegram.telegrambots.ApiContextInitializer;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 
+@Service
 public class PodcastBot extends TelegramLongPollingBot{
     private final Repo repo;
+    private final TelegramBotsApi botApi;
     @Value("${bot.name}")
-    private static String BOT_USERNAME;
+    private String BOT_USERNAME;
     @Value("${bot.token}")
-    private static String BOT_TOKEN;
+    private String BOT_TOKEN;
     @Value("${bot.channel-id}")
-    private static String CHANEL_ID;
+    private String CHANEL_ID;
 
-    public PodcastBot(Repo repo) {
+    @Autowired
+    public PodcastBot(Repo repo, TelegramBotsApi botApi) {
         this.repo = repo;
+        this.botApi = botApi;
+    }
+    @PostConstruct
+    public void registerBot(){
+        try {
+            botApi.registerBot(this);
+        } catch (TelegramApiRequestException e) {
+            throw new RuntimeException("Can't register bot", e);
+        }
     }
 
     @Override
     public void onUpdateReceived(Update update) {
+
         if (update.getMessage().getText().isEmpty()){
             return;
         }

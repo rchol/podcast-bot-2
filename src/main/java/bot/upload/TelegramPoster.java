@@ -1,5 +1,6 @@
 package bot.upload;
 
+import bot.download.RSSFeedParser.PostProcessing;
 import bot.sql.Repo;
 import bot.upload.model.TelegramMessage;
 import bot.upload.utils.AudioPreparator;
@@ -9,6 +10,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendAudio;
@@ -18,9 +20,8 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 @Service
 public class TelegramPoster {
-    private static final String BOT_USERNAME = "pr";
-    private static final String BOT_TOKEN = "";
-    private static final String CHANEL_ID = "@";
+    @Value("${bot.channel-id}")
+    private String CHANEL_ID;
 
     private final Repo repo;
     private PodcastBot bot;
@@ -37,7 +38,7 @@ public class TelegramPoster {
         posts.forEach(post -> {
             int replyId = sendMessage(post.buildText());
             sendAudio(post, replyId);
-            repo.updateProcessed(post.getGuid());
+            repo.updateProcessed(post.getGuid(), PostProcessing.POSTED);
         });
     }
 
