@@ -60,7 +60,7 @@ public class H2Repo implements Repo {
         ds.executeUpdate(
             "INSERT INTO posts (guid, title, link, link_tag, enclosure, description, publish_date, hashtags, status) VALUES"
                 + "(?,?,?,?,?,?,?,?,?)", guid, title, link, linkTag, enclosure, description, publishDateMillis
-            ,hashtags.toString(), PostStatus.NEW.name());
+            , hashtags.toString(), PostStatus.NEW.name());
     }
 
     @Override
@@ -94,6 +94,11 @@ public class H2Repo implements Repo {
     }
 
     @Override
+    public void removeChannel(String url) {
+        ds.executeUpdate("DELETE FROM channels WHERE feed_url='" + url + "'");
+    }
+
+    @Override
     public String getChannelTags(String url) {
         try {
             ResultSet rs = ds.executeQuery("SELECT hashtags FROM channels WHERE feed_url ='" + url + "'");
@@ -109,7 +114,8 @@ public class H2Repo implements Repo {
     @Override
     public List<TelegramMessage> getUnprocessedPosts() {
         try {
-            ResultSet rs = ds.executeQuery("SELECT * FROM posts WHERE status ='" + PostStatus.NEW.name() + "' ORDER BY publish_date");
+            ResultSet rs = ds.executeQuery(
+                "SELECT * FROM posts WHERE status ='" + PostStatus.NEW.name() + "' ORDER BY publish_date");
             List<TelegramMessage> posts = new ArrayList<>();
             while (rs.next()) {
                 List<String> hashtags = new ArrayList<>(Arrays.asList(rs.getString("hashtags").split("\\s+")));

@@ -4,7 +4,6 @@ import bot.sql.Repo;
 import com.google.common.collect.ImmutableMap;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -114,7 +113,15 @@ public class PodcastBot extends TelegramLongPollingBot {
                     } catch (MalformedURLException e) {
                         throw new RuntimeException("Not a valid URL", e);
                     }
+                },
+                "/remove", (me) -> (repo) -> (bot) -> {
+                        if (me.size() < 2) {
+                            return;
+                        }
+                        String url = me.get(1).getText();
+                        repo.removeChannel(url);
                 }
+
             );
 
 

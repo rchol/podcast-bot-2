@@ -17,6 +17,8 @@ public interface Repo {
 
     long updateProcessed(String guid, PostStatus status);
 
+    void removeChannel(String url);
+
     String getChannelTags(String url);
 
     List<TelegramMessage> getUnprocessedPosts();

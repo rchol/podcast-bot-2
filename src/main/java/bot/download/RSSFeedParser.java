@@ -42,7 +42,10 @@ public class RSSFeedParser {
                 .addHashtag(infoTunes.getAuthor())
                 .addHashtag(repo.getChannelTags(url.toString()).split("\\s+")).build();
             this.channel = channel;
-        } catch (FeedException | IOException e) {
+        } catch (FeedException e) {
+            repo.removeChannel(channel.getUrlFeed());
+            throw new RuntimeException("Not a valid RSS Feed. URL was removed",e);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
